@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# BASH_SOURCE[0] is the path to the current relative from where script was executed
+DIR="$(dirname "$BASH_SOURCE[0]")"
+
+function to_absolute_path {
+  echo $(cd "$1" && pwd)
+}
+
+function get_project_root {
+  echo $(to_absolute_path "$DIR/..")
+}
