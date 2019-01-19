@@ -1,5 +1,8 @@
+# database
 PG_USER=postgres
 PG_PASS=postgres
 PG_DB=lynx_list_dev
 PG_HOST=db
+
+# api
 API_PORT=8800

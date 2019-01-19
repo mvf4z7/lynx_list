@@ -4,6 +4,7 @@ DIR="$( dirname ${BASH_SOURCE[0]} )"
 source "$DIR/utils"
 
 ROOT=$( get_project_root )
+ENV_FILE="$DIR/.dev-env"
 
 # lynx_list docker-based dev environment starter
 #
@@ -18,7 +19,7 @@ ROOT=$( get_project_root )
 # expands command line arguments passed to this file
 ARGS="$@"
 
-export $( cat "$DIR/.dev-env" | xargs )
+load_env $ENV_FILE
 
 docker-compose \
     -p hacker_lynx_dev \

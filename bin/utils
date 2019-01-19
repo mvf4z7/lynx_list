@@ -4,9 +4,17 @@
 DIR="$(dirname "$BASH_SOURCE[0]")"
 
 function to_absolute_path {
-  echo $(cd "$1" && pwd)
+  RELATIVE_PATH=$1
+  echo $(cd "$RELATIVE_PATH" && pwd)
 }
 
 function get_project_root {
   echo $(to_absolute_path "$DIR/..")
+}
+
+function load_env {
+  # Sets environment variables from a file provided as the first
+  # argument. Lines beginning with "#" will be ignored.
+  PATH_TO_ENV_FILE=$1
+  export $(grep -v '^#' $PATH_TO_ENV_FILE | xargs)
 }
