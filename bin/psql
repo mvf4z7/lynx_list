@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+docker exec -it hacker_lynx_dev_db psql -U postgres -d lynx_list_dev
