@@ -5,6 +5,9 @@ source "$DIR/utils"
 
 ROOT=$( get_project_root )
 
+ENV_FILE="$DIR/.dev-env"
+load_env $ENV_FILE
+
 docker-compose \
   -p hacker_lynx_dev \
   -f "$ROOT/docker/dev/docker-compose.yml" \
