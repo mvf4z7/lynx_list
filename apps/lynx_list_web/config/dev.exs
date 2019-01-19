@@ -11,7 +11,7 @@ use Mix.Config
 # watchers to your application. For example, we use it
 # with webpack to recompile .js and .css sources.
 config :lynx_list_web, LynxListWeb.Endpoint,
-  http: [port: 8800],
+  http: [port: System.get_env("API_PORT")],
   debug_errors: true,
   code_reloader: true,
   check_origin: false,

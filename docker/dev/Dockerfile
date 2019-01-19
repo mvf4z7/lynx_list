@@ -1,3 +1,5 @@
+ARG PORT=$PORT
+
 FROM elixir:latest
 
 RUN apt-get update
@@ -9,7 +11,7 @@ RUN mix local.rebar --force
 RUN mix archive.install --force https://github.com/phoenixframework/archives/raw/master/phx_new.ez
 
 WORKDIR /app
-EXPOSE 8800
+EXPOSE ${PORT}
 
 COPY ./config.fish /root/.config/fish/config.fish
 

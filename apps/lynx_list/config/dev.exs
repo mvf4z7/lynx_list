@@ -5,9 +5,11 @@
 use Mix.Config
 
 # Configure your database
+
 config :lynx_list, LynxList.Repo,
-  username: "postgres",
-  password: "postgres",
-  database: "lynx_list_dev",
-  hostname: "db",
+  show_sensitive_data_on_connection_error: true,
+  username: System.get_env("PG_USER"),
+  password: System.get_env("PG_PASS"),
+  database: System.get_env("PG_DB"),
+  hostname: System.get_env("PG_HOST"),
   pool_size: 10
