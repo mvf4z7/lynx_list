@@ -7,5 +7,7 @@ defmodule LynxListWeb.Router do
 
   scope "/api", LynxListWeb do
     pipe_through :api
+
+    get "/test", TestController, :index
   end
 end
