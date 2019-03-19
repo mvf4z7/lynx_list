@@ -1,9 +1,0 @@
-{application,lynx_list,
-             [{applications,[kernel,stdlib,elixir,logger,runtime_tools,
-                             postgrex,ecto_sql]},
-              {description,"lynx_list"},
-              {modules,['Elixir.LynxList','Elixir.LynxList.Application',
-                        'Elixir.LynxList.DataCase','Elixir.LynxList.Repo']},
-              {registered,[]},
-              {vsn,"0.1.0"},
-              {mod,{'Elixir.LynxList.Application',[]}}]}.
