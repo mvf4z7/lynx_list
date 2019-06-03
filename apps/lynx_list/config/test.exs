@@ -9,5 +9,5 @@ config :lynx_list, LynxList.Repo,
   username: "postgres",
   password: "postgres",
   database: "lynx_list_test",
-  hostname: "localhost",
+  hostname: "db",
   pool: Ecto.Adapters.SQL.Sandbox
