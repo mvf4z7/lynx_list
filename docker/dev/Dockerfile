@@ -1,6 +1,6 @@
 ARG PORT=$PORT
 
-FROM elixir:latest
+FROM elixir:1.8.1
 
 RUN apt-get update
 RUN apt-get install --yes build-essential inotify-tools postgresql-client fish vim
