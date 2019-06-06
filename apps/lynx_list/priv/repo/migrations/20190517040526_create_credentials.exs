@@ -11,5 +11,6 @@ defmodule LynxList.Repo.Migrations.CreateCredentials do
     end
 
     create unique_index(:credentials, [:user_id])
+    create unique_index(:credentials, [:github_id])
   end
 end
