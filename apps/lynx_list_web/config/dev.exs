@@ -17,6 +17,8 @@ config :lynx_list_web, LynxListWeb.Endpoint,
   check_origin: false,
   watchers: []
 
+config :joken, default_signer: "JWT_SECRET"
+
 # ## SSL Support
 #
 # In order to use HTTPS in development, a self-signed

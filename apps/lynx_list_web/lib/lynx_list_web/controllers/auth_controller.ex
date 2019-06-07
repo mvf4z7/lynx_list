@@ -1,6 +1,7 @@
 defmodule LynxListWeb.AuthController do
   use LynxListWeb, :controller
 
+  alias LynxListWeb.Auth
   alias LynxList.Accounts
 
   plug Ueberauth
@@ -11,7 +12,7 @@ defmodule LynxListWeb.AuthController do
   end
 
   def identity_callback(%{assigns: %{ueberauth_auth: auth}} = conn, _params) do
-    IO.inspect(auth)
+    # IO.inspect(auth)
 
     conn
     |> put_resp_content_type("application/json")
@@ -22,35 +23,31 @@ defmodule LynxListWeb.AuthController do
     %{provider: provider} = auth
 
     conn
-    |> put_token_cookies
     |> do_callback(provider, auth)
   end
 
   def create_account(conn, params) do
     {:ok, user} = Accounts.register_user(params)
-    IO.inspect(user)
     render(conn, "create.json", user: user)
   end
 
   defp do_callback(conn, :github, auth) do
-    IO.inspect(auth)
+    github_id = auth.uid
+    user = Accounts.get_user_by_github_id!(github_id)
+    jwt = Auth.generate_jwt_for_user(user)
 
     conn
-    # |> put_resp_content_type("application/json")
+    |> put_token_cookies(jwt)
     |> redirect(external: "http://localhost.com:3000/receive?token=1234")
   end
 
-  defp put_token_cookies(conn) do
-    payload =
-      Jason.encode!(%{
-        id: 1,
-        name: "John Doe",
-        admin: false
-      })
+  defp put_token_cookies(conn, token) do
+    [header, payload, signature] = String.split(token, ".")
+    header_and_signature = "#{header}.#{signature}"
 
     conn
     |> put_resp_cookie("token_payload", payload, domain: ".localhost.com", http_only: false)
-    |> put_resp_cookie("token_header_signature", "header_and_signature",
+    |> put_resp_cookie("token_header_signature", header_and_signature,
       domain: ".localhost.com",
       http_only: true
     )

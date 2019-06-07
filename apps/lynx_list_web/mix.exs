@@ -46,7 +46,8 @@ defmodule LynxListWeb.MixProject do
       {:plug_cowboy, "~> 2.0"},
       {:ueberauth, "~> 0.6"},
       {:ueberauth_identity, "~> 0.2"},
-      {:ueberauth_github, "~> 0.7"}
+      {:ueberauth_github, "~> 0.7"},
+      {:joken, "~> 2.1"}
     ]
   end
 
