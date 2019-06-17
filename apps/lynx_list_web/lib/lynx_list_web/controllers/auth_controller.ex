@@ -5,6 +5,7 @@ defmodule LynxListWeb.AuthController do
   alias LynxList.Accounts
 
   plug Ueberauth
+  @lynx_list_client_url Application.get_env(:lynx_list_web, :lynx_list_client_url)
 
   def request(conn, _params) do
     conn
@@ -12,18 +13,18 @@ defmodule LynxListWeb.AuthController do
   end
 
   def identity_callback(%{assigns: %{ueberauth_auth: auth}} = conn, _params) do
-    # IO.inspect(auth)
-
     conn
     |> put_resp_content_type("application/json")
     |> send_resp(200, "{ \"foo\": \"bar\"}")
   end
 
-  def callback(%{assigns: %{ueberauth_auth: auth}} = conn, _params) do
-    %{provider: provider} = auth
+  def callback(conn, %{"provider" => provider} = params) do
+    %{assigns: %{ueberauth_auth: auth}} = conn
+    redirect_path = Map.get(params, "state", "/receive")
 
     conn
     |> do_callback(provider, auth)
+    |> redirect(external: "#{@lynx_list_client_url}#{redirect_path}")
   end
 
   def create_account(conn, params) do
@@ -31,14 +32,13 @@ defmodule LynxListWeb.AuthController do
     render(conn, "create.json", user: user)
   end
 
-  defp do_callback(conn, :github, auth) do
+  defp do_callback(conn, "github", auth) do
     github_id = auth.uid
     user = Accounts.get_user_by_github_id!(github_id)
-    jwt = Auth.generate_jwt_for_user(user)
+    {:ok, jwt} = Auth.generate_jwt(user)
 
     conn
     |> put_token_cookies(jwt)
-    |> redirect(external: "http://localhost.com:3000/receive?token=1234")
   end
 
   defp put_token_cookies(conn, token) do

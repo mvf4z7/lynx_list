@@ -4,6 +4,9 @@
 # the umbrella root.
 use Mix.Config
 
+config :lynx_list_web,
+  lynx_list_client_url: "http://localhost.com:3000"
+
 # For development, we disable any cache and enable
 # debugging and code reloading.
 #

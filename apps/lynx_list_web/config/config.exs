@@ -7,11 +7,12 @@ use Mix.Config
 # General application configuration
 config :lynx_list_web,
   ecto_repos: [LynxList.Repo],
-  generators: [context_app: :lynx_list]
+  generators: [context_app: :lynx_list],
+  lynx_list_client_url: System.get_env("LYNX_LIST_CLIENT_URL")
 
 # Configures the endpoint
 config :lynx_list_web, LynxListWeb.Endpoint,
-  url: [host: "localhost"],
+  url: [host: "localhost.com"],
   secret_key_base: "ZexdLaB77jmvaNnrqpguwzkwRyYQRsa8pixLOnma0WoX4Xn2BB74hlTIY8alSzGR",
   render_errors: [view: LynxListWeb.ErrorView, accepts: ~w(json)],
   pubsub: [name: LynxListWeb.PubSub, adapter: Phoenix.PubSub.PG2]
