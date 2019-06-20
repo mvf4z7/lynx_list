@@ -5,7 +5,8 @@ defmodule LynxList.Umbrella.MixProject do
     [
       apps_path: "apps",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      dialyzer: [plt_add_deps: :transitive]
     ]
   end
 
@@ -22,6 +23,6 @@ defmodule LynxList.Umbrella.MixProject do
   # Dependencies listed here are available only for this project
   # and cannot be accessed from applications inside the apps folder
   defp deps do
-    []
+    [{:dialyxir, "~> 1.0.0-rc.6", only: [:dev], runtime: false}]
   end
 end
