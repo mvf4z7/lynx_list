@@ -30,4 +30,19 @@ defmodule LynxListWeb.ErrorHelpers do
       Gettext.dgettext(LynxListWeb.Gettext, "errors", msg, opts)
     end
   end
+
+  @spec status_from_template(String.t()) :: integer
+  def status_from_template(template) when is_binary(template) do
+    template
+    |> String.split(".")
+    |> hd()
+    |> String.to_integer()
+  end
+
+  @spec default_code_for_status(integer) :: String.t()
+  def default_code_for_status(status) do
+    status
+    |> Plug.Conn.Status.reason_phrase()
+    |> String.replace(" ", "")
+  end
 end

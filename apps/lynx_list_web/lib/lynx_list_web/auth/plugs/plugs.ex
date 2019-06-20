@@ -18,8 +18,6 @@ defmodule LynxListWeb.Auth.Plugs do
         conn
 
       {{:error, :expired_token}, token} ->
-        IO.inspect("EXPIRED TOKEN")
-
         with {:ok, token} <- Auth.refresh_jwt(token) do
           put_jwt_cookies(conn, jwt: token)
         else
