@@ -2,58 +2,75 @@ defmodule LynxListWeb.Auth.Plugs do
   import Plug.Conn
   alias LynxListWeb.Auth
 
-  @payload_key "token_payload"
-  @header_signature_key "token_header_signature"
   @host Application.get_env(:lynx_list_web, LynxListWeb.Endpoint)
         |> Keyword.fetch!(:url)
         |> Keyword.fetch!(:host)
 
-  def attempt_authentication(conn, options \\ []) do
+  @payload_key "token_payload"
+  @payload_options [domain: ".#{@host}", http_only: false]
+
+  @header_signature_key "token_header_signature"
+  @header_signature_options [domain: ".#{@host}", http_only: true]
+
+  @claims_key :token_claims
+
+  @spec attempt_authentication(Plug.Conn.t(), Plug.opts()) :: Plug.Conn.t()
+  def attempt_authentication(conn, _options \\ []) do
     with {:ok, token} <- parse_jwt_from_cookies(conn),
          {{:ok, claims}, token} <- {Auth.verify_and_validate_jwt(token), token} do
-      assign(conn, :token_claims, claims)
+      put_claims(conn, claims)
     else
-      # User is not authenticated, let them pass through
-      {:error, :failed_to_parse_jwt} ->
-        conn
-
       {{:error, :expired_token}, token} ->
-        with {:ok, token} <- Auth.refresh_jwt(token) do
-          put_jwt_cookies(conn, jwt: token)
-        else
-          # TODO: Send 500 error
-          error ->
-            conn
+        case Auth.refresh_jwt(token) do
+          {:ok, token} -> put_jwt_cookies(conn, jwt: token)
+          error -> delete_jwt_cookies(conn)
         end
 
-      # TODO: Send an appropraite 400 error
-      {{:error, :signature_error}, token} ->
-        nil
-
-      # TODO: properly handle this scenario
-      unknown_error ->
-        IO.inspect(unknown_error)
-        nil
+      error ->
+        delete_jwt_cookies(conn)
     end
   end
 
-  def require_authentication(conn, options \\ []) do
+  @spec require_authentication(Plug.Conn.t(), Plug.opts()) :: Plug.Conn.t()
+  def require_authentication(conn, _options \\ []) do
+    with new_conn <- attempt_authentication(conn),
+         {true, new_conn} <- {is_authenticated?(new_conn), new_conn} do
+      new_conn
+    else
+      {false, new_conn} ->
+        new_conn
+        |> put_status(401)
+        |> Phoenix.Controller.render(LynxListWeb.ErrorView, "error.json")
+        |> halt
+
+      unknown_error ->
+        conn
+        |> put_status(500)
+        |> Phoenix.Controller.render(LynxListWeb.ErrorView, "error.json")
+    end
   end
 
-  def put_user(conn, _options) do
-    # Use this when full user struct should be fetched from db
-  end
+  @spec get_claims(Plug.Conn.t()) :: map() | nil
+  def get_claims(conn), do: conn.assigns[@claims_key]
 
+  @spec is_authenticated?(Plug.Conn.t()) :: boolean()
+  def is_authenticated?(conn), do: Map.has_key?(conn.assigns, @claims_key)
+
+  @spec put_jwt_cookies(Plug.Conn.t(), Plug.opts()) :: Plug.Conn.t()
   def put_jwt_cookies(conn, jwt: jwt) do
     [header, payload, signature] = String.split(jwt, ".")
     header_and_signature = "#{header}.#{signature}"
 
     conn
-    |> put_resp_cookie(@payload_key, payload, domain: ".#{@host}", http_only: false)
-    |> put_resp_cookie(@header_signature_key, header_and_signature,
-      domain: ".#{@host}",
-      http_only: true
-    )
+    |> put_resp_cookie(@payload_key, payload, @payload_options)
+    |> put_resp_cookie(@header_signature_key, header_and_signature, @header_signature_options)
+  end
+
+  @spec delete_jwt_cookies(Plug.Conn.t(), Plug.opts()) :: Plug.Conn.t()
+  def delete_jwt_cookies(conn, _options \\ []) do
+    conn
+    |> delete_resp_cookie(@payload_key, @payload_options)
+    |> delete_resp_cookie(@header_signature_key, @header_signature_options)
   end
 
   defp parse_jwt_from_cookies(conn) do
@@ -67,5 +84,10 @@ defmodule LynxListWeb.Auth.Plugs do
     else
       _ -> {:error, :failed_to_parse_jwt}
     end
+  end
+
+  @spec put_claims(Plug.Conn.t(), map()) :: Plug.Conn.t()
+  defp put_claims(conn, claims) do
+    assign(conn, @claims_key, claims)
   end
 end
