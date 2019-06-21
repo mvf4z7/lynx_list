@@ -17,7 +17,7 @@ defmodule LynxListWeb.Auth do
     }
 
     case JWT.generate_and_sign(additionalClaims) do
-      {:ok, token, claims} -> {:ok, token}
+      {:ok, token, _claims} -> {:ok, token}
       error -> error
     end
   end
@@ -45,7 +45,7 @@ defmodule LynxListWeb.Auth do
     end
   end
 
-  def get_user_claims(%Conn{} = conn) do
+  def get_user_claims(%Conn{} = _conn) do
   end
 
   def get_user_claims(claims) when is_map(claims) do
@@ -55,10 +55,9 @@ defmodule LynxListWeb.Auth do
     end
   end
 
-  def get_user(conn) do
+  def get_user(_conn) do
   end
 
-  def is_authenticated(conn) do
-    true
-  end
+  @spec is_authenticated?(Plug.Conn.t()) :: boolean()
+  defdelegate is_authenticated?(conn), to: LynxListWeb.Auth.Plugs
 end
