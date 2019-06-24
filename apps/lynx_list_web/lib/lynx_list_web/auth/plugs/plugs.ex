@@ -17,16 +17,16 @@ defmodule LynxListWeb.Auth.Plugs do
   @spec attempt_authentication(Plug.Conn.t(), Plug.opts()) :: Plug.Conn.t()
   def attempt_authentication(conn, _options \\ []) do
     with {:ok, token} <- parse_jwt_from_cookies(conn),
-         {{:ok, claims}, token} <- {Auth.verify_and_validate_jwt(token), token} do
+         {{:ok, claims}, _token} <- {Auth.verify_and_validate_jwt(token), token} do
       put_claims(conn, claims)
     else
       {{:error, :expired_token}, token} ->
         case Auth.refresh_jwt(token) do
           {:ok, token} -> put_jwt_cookies(conn, jwt: token)
-          error -> delete_jwt_cookies(conn)
+          _error -> delete_jwt_cookies(conn)
         end
 
-      error ->
+      _error ->
         delete_jwt_cookies(conn)
     end
   end
@@ -43,7 +43,7 @@ defmodule LynxListWeb.Auth.Plugs do
         |> Phoenix.Controller.render(LynxListWeb.ErrorView, "error.json")
         |> halt
 
-      unknown_error ->
+      _unknown_error ->
         conn
         |> put_status(500)
         |> Phoenix.Controller.render(LynxListWeb.ErrorView, "error.json")
