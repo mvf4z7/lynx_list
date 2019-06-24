@@ -31,7 +31,6 @@ defmodule LynxListWeb.ErrorView do
   #  2. message (i.e. "A user with id 123 does not exist")
   #  3. errors (from change set errors )
   def template_not_found(template, assigns) do
-    IO.inspect(assigns)
     %{errors: %{detail: Phoenix.Controller.status_message_from_template(template)}}
   end
 end

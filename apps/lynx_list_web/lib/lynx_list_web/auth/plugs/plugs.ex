@@ -73,6 +73,8 @@ defmodule LynxListWeb.Auth.Plugs do
     |> delete_resp_cookie(@header_signature_key, @header_signature_options)
   end
 
+  @spec parse_jwt_from_cookies(Plug.Conn.t()) ::
+          {:ok, String.t()} | {:error, :failed_to_parse_jwt}
   defp parse_jwt_from_cookies(conn) do
     conn = fetch_cookies(conn)
     cookies = conn.req_cookies
