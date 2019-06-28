@@ -67,7 +67,7 @@ defmodule LynxListWeb.Auth.Plugs do
   end
 
   @spec delete_jwt_cookies(Plug.Conn.t(), Plug.opts()) :: Plug.Conn.t()
-  def delete_jwt_cookies(conn, _options \\ []) do
+  defp delete_jwt_cookies(conn, _options \\ []) do
     conn
     |> delete_resp_cookie(@payload_key, @payload_options)
     |> delete_resp_cookie(@header_signature_key, @header_signature_options)

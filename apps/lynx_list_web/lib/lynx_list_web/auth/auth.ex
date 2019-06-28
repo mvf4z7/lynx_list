@@ -45,7 +45,13 @@ defmodule LynxListWeb.Auth do
     end
   end
 
-  def get_user_claims(%Conn{} = _conn) do
+  defdelegate get_claims(conn), to: LynxListWeb.Auth.Plugs
+
+  @spec get_user_claims(map) :: {:error, :invalid_claims_format} | {:ok, any}
+  def get_user_claims(%Conn{} = conn) do
+    conn
+    |> get_claims()
+    |> get_user_claims()
   end
 
   def get_user_claims(claims) when is_map(claims) do
@@ -58,6 +64,5 @@ defmodule LynxListWeb.Auth do
   def get_user(_conn) do
   end
 
-  @spec is_authenticated?(Plug.Conn.t()) :: boolean()
   defdelegate is_authenticated?(conn), to: LynxListWeb.Auth.Plugs
 end
