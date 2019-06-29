@@ -9,5 +9,3 @@ use Mix.Config
 config :lynx_list_web, LynxListWeb.Endpoint,
   http: [port: 4002],
   server: false
-
-config :joken, default_signer: "JWT_SECRET"
