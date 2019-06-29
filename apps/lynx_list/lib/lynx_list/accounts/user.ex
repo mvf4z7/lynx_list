@@ -4,10 +4,12 @@ defmodule LynxList.Accounts.User do
   import Ecto.Changeset
   alias LynxList.Accounts.Credentials
 
-  @required_fields [:email, :username]
+  @required_fields [:email, :enabled, :username]
+  @cast_fields Enum.concat(@required_fields, [:name])
 
   schema "users" do
     field :email, :string
+    field :enabled, :boolean
     field :name, :string
     field :username, :string
 
@@ -19,7 +21,7 @@ defmodule LynxList.Accounts.User do
   @doc false
   def changeset(user, attrs) do
     user
-    |> cast(attrs, [:name, :username, :email])
+    |> cast(attrs, @cast_fields)
     |> validate_required(@required_fields)
     |> validate_length(:username, min: 1, max: 20)
     |> unique_constraint(:email)

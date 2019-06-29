@@ -4,6 +4,7 @@ defmodule LynxList.Repo.Migrations.CreateUsers do
   def change do
     create table(:users) do
       add :email, :string, null: false
+      add :enabled, :boolean, null: false
       add :name, :string
       add :username, :string, null: false
 

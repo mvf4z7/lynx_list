@@ -3,31 +3,8 @@ defmodule LynxListWeb.Auth.PlugsTest do
 
   alias LynxListWeb.Auth
   alias LynxListWeb.Auth.Plugs
-  alias LynxList.Accounts
+  alias LynxList.Fixtures
   import Plug.Conn
-
-  @valid_registration_attrs %{
-    email: "someemail@foo.com",
-    name: "some name",
-    username: "someusername",
-    credentials: %{
-      password: "password"
-    }
-  }
-
-  def user_fixture(registration_overrides \\ %{}) do
-    {:ok, user} =
-      @valid_registration_attrs
-      |> Map.merge(registration_overrides, fn k, v1, v2 ->
-        case k do
-          :credentials -> Map.merge(v1, v2)
-          _ -> v2
-        end
-      end)
-      |> Accounts.register_user()
-
-    user
-  end
 
   def create_authed_conn(user) do
     {:ok, jwt} = Auth.generate_jwt(user)
@@ -44,7 +21,7 @@ defmodule LynxListWeb.Auth.PlugsTest do
   describe "put_jwt_cookies" do
     test "it should put the jwt payload fragment in the \"token_payload\" cookie" do
       {:ok, jwt} =
-        user_fixture()
+        Fixtures.user()
         |> Auth.generate_jwt()
 
       [_header, payload, _signature] = String.split(jwt, ".")
@@ -60,7 +37,7 @@ defmodule LynxListWeb.Auth.PlugsTest do
 
     test "it should put the jwt header and signature fragments in the \"token_header_signature\" cookie" do
       {:ok, jwt} =
-        user_fixture()
+        Fixtures.user()
         |> Auth.generate_jwt()
 
       [header, _payload, signature] = String.split(jwt, ".")
@@ -76,7 +53,7 @@ defmodule LynxListWeb.Auth.PlugsTest do
 
     test "it should make the token_payload cookie accessible by javascript" do
       {:ok, jwt} =
-        user_fixture()
+        Fixtures.user()
         |> Auth.generate_jwt()
 
       conn =
@@ -89,7 +66,7 @@ defmodule LynxListWeb.Auth.PlugsTest do
 
     test "it should make the \"token_header_signature\" cookie not accessible by javascript" do
       {:ok, jwt} =
-        user_fixture()
+        Fixtures.user()
         |> Auth.generate_jwt()
 
       conn =
@@ -103,7 +80,7 @@ defmodule LynxListWeb.Auth.PlugsTest do
 
   describe "attempt_authentication" do
     test "it should make the tokens claims accessible via the get_claims function when passed an authenticated conn" do
-      user = user_fixture()
+      user = Fixtures.user()
 
       claims =
         user
@@ -128,7 +105,7 @@ defmodule LynxListWeb.Auth.PlugsTest do
 
   describe "require_authentication" do
     test "it should make the tokens claims accessible via the get_claims function when passed an authenticated conn" do
-      user = user_fixture()
+      user = Fixtures.user()
 
       claims =
         user
@@ -153,7 +130,7 @@ defmodule LynxListWeb.Auth.PlugsTest do
   describe "is_authenticated" do
     test "it should return true if the conn is authenticated" do
       conn =
-        user_fixture()
+        Fixtures.user()
         |> create_authed_conn()
         |> Plugs.attempt_authentication()
 
