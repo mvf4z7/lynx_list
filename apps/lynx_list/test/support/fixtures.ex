@@ -2,7 +2,7 @@ defmodule LynxList.Fixtures do
   alias LynxList.Accounts
   alias LynxList.Accounts.User
 
-  @spec user(map()) :: User.t()
+  @spec user(map()) :: %User{}
   def user(attrs \\ %{}) do
     username = "user#{System.unique_integer([:positive])}"
 

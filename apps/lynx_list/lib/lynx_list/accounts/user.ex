@@ -28,7 +28,7 @@ defmodule LynxList.Accounts.User do
     |> unique_constraint(:username)
   end
 
-  def registration_changegset(user, attrs) do
+  def registration_changegset(%LynxList.Accounts.User{} = user, attrs) do
     user
     |> changeset(attrs)
     |> cast_assoc(:credentials, with: &Credentials.changeset/2, required: true)

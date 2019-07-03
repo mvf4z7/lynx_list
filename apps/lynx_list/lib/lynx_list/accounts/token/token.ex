@@ -1,11 +1,12 @@
 defmodule LynxList.Accounts.Token do
+  alias LynxList.Accounts
   alias LynxList.Accounts.Token.JWT
   alias LynxList.Accounts.User
 
   @type claims :: %{optional(binary) => any}
-  @type token_error_reason :: atom | keyword
+  @type error_reason :: atom | keyword
 
-  @spec generate(User.t()) :: {:error, token_error_reason} | {:ok, claims}
+  @spec generate(%User{}) :: {:error, error_reason} | {:ok, claims}
   def generate(%User{enabled: true} = user) do
     additionalClaims = %{
       "data" => %{
@@ -28,17 +29,40 @@ defmodule LynxList.Accounts.Token do
     {:error, :disabled_user}
   end
 
-  # @spec verify(binary) :: {:error, token_error_reason} | {:ok, claims}
-  # def verify(token) when is_binary(token) do
-  #   JWT.verify(token)
-  # end
+  @spec get_user_claims(claims) :: {:error, :invalid_claims} | {:ok, claims}
+  def get_user_claims(claims) when is_map(claims) do
+    case get_in(claims, ["data", "user"]) do
+      nil -> {:error, :invalid_claims}
+      value -> {:ok, value}
+    end
+  end
 
-  @spec verify_and_validate(binary) :: {:error, token_error_reason} | {:ok, claims}
+  @spec verify_and_validate(binary) :: {:error, error_reason} | {:ok, claims}
   def verify_and_validate(token) when is_binary(token) do
     case JWT.verify_and_validate(token) do
       {:error, [message: "Invalid token", claim: "exp", claim_val: _]} -> {:error, :expired_token}
       {:error, _} -> {:error, :signature_error}
       {:ok, claims} -> {:ok, claims}
     end
+  end
+
+  @spec refresh(binary) :: {:error, error_reason} | {:ok, binary}
+  def refresh(token) when is_binary(token) do
+    with {:ok, claims} <- verify(token),
+         {:ok, user_claims} <- get_user_claims(claims),
+         {:get_user, user} when not is_nil(user) <-
+           {:get_user, Accounts.get_user(user_claims["id"])},
+         {:enabled, true} <- {:enabled, user.enabled} do
+      generate(user)
+    else
+      {:get_user, nil} -> {:error, :user_does_not_exist}
+      {:enabled, false} -> {:error, :user_is_disabled}
+      error -> error
+    end
+  end
+
+  @spec verify(binary) :: {:error, error_reason} | {:ok, claims}
+  defp verify(token) when is_binary(token) do
+    JWT.verify(token)
   end
 end
