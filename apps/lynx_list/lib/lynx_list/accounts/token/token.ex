@@ -3,10 +3,11 @@ defmodule LynxList.Accounts.Token do
   alias LynxList.Accounts.Token.JWT
   alias LynxList.Accounts.User
 
+  @type t :: binary
   @type claims :: %{optional(binary) => any}
   @type error_reason :: atom | keyword
 
-  @spec generate(%User{}) :: {:error, error_reason} | {:ok, claims}
+  @spec generate(%User{}) :: {:error, error_reason} | {:ok, t}
   def generate(%User{enabled: true} = user) do
     additionalClaims = %{
       "data" => %{
@@ -37,7 +38,7 @@ defmodule LynxList.Accounts.Token do
     end
   end
 
-  @spec verify_and_validate(binary) :: {:error, error_reason} | {:ok, claims}
+  @spec verify_and_validate(t) :: {:error, error_reason} | {:ok, claims}
   def verify_and_validate(token) when is_binary(token) do
     case JWT.verify_and_validate(token) do
       {:error, [message: "Invalid token", claim: "exp", claim_val: _]} -> {:error, :expired_token}
@@ -46,7 +47,7 @@ defmodule LynxList.Accounts.Token do
     end
   end
 
-  @spec refresh(binary) :: {:error, error_reason} | {:ok, binary}
+  @spec refresh(t) :: {:error, error_reason} | {:ok, t}
   def refresh(token) when is_binary(token) do
     with {:ok, claims} <- verify(token),
          {:ok, user_claims} <- get_user_claims(claims),
@@ -61,7 +62,7 @@ defmodule LynxList.Accounts.Token do
     end
   end
 
-  @spec verify(binary) :: {:error, error_reason} | {:ok, claims}
+  @spec verify(t) :: {:error, error_reason} | {:ok, claims}
   defp verify(token) when is_binary(token) do
     JWT.verify(token)
   end
