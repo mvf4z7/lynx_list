@@ -12,7 +12,7 @@ defmodule LynxListWeb.AuthController do
     |> send_resp(201, "success")
   end
 
-  def identity_callback(%{assigns: %{ueberauth_auth: auth}} = conn, _params) do
+  def identity_callback(%{assigns: %{ueberauth_auth: _auth}} = conn, _params) do
     conn
     |> put_resp_content_type("application/json")
     |> send_resp(200, "{ \"foo\": \"bar\"}")
@@ -35,7 +35,7 @@ defmodule LynxListWeb.AuthController do
   defp do_callback(conn, "github", auth) do
     github_id = auth.uid
     user = Accounts.get_user_by_github_id!(github_id)
-    {:ok, jwt} = Auth.generate_jwt(user)
+    {:ok, jwt} = Accounts.Token.generate(user)
 
     conn
     |> put_token_cookies(jwt)

@@ -1,16 +1,16 @@
 defmodule LynxListWeb.TestController do
   use LynxListWeb, :controller
 
-  import LynxListWeb.Auth.Plugs
+  import LynxListWeb.Auth
 
   plug :attempt_authentication
   # plug :require_authentication
 
   def index(conn, _params) do
-    LynxListWeb.Auth.is_authenticated?(conn)
+    is_authenticated?(conn)
 
     json(conn, %{
-      authenticated: LynxListWeb.Auth.is_authenticated?(conn)
+      authenticated: is_authenticated?(conn)
     })
 
     # conn

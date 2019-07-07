@@ -1,68 +1,107 @@
 defmodule LynxListWeb.Auth do
-  alias LynxListWeb.Auth.JWT
+  import Plug.Conn
+
   alias LynxList.Accounts
-  alias LynxList.Accounts.User
-  alias Plug.Conn
 
-  def generate_jwt(%User{} = user) do
-    additionalClaims = %{
-      "data" => %{
-        "user" => %{
-          "id" => user.id,
-          "email" => user.email,
-          "name" => user.name,
-          "username" => user.username
-        }
-      }
-    }
+  @host Application.get_env(:lynx_list_web, LynxListWeb.Endpoint)
+        |> Keyword.fetch!(:url)
+        |> Keyword.fetch!(:host)
 
-    case JWT.generate_and_sign(additionalClaims) do
-      {:ok, token, _claims} -> {:ok, token}
-      error -> error
-    end
-  end
+  @payload_key "token_payload"
+  @payload_options [domain: ".#{@host}", http_only: false]
 
-  def verify_jwt(token) when is_binary(token) do
-    JWT.verify(token)
-  end
+  @header_signature_key "token_header_signature"
+  @header_signature_options [domain: ".#{@host}", http_only: true]
 
-  def verify_and_validate_jwt(token) when is_binary(token) do
-    case JWT.verify_and_validate(token) do
-      {:error, [message: "Invalid token", claim: "exp", claim_val: _]} -> {:error, :expired_token}
-      result -> result
-    end
-  end
+  @claims_key :token_claims
 
-  def refresh_jwt(token) when is_binary(token) do
-    with {:ok, claims} <- verify_jwt(token),
-         {:ok, user_claims} <- get_user_claims(claims),
-         {:get_user, user} <- {:get_user, Accounts.get_user(user_claims["id"])} do
-      # TODO: Should check that the user is active first before generating
-      generate_jwt(user)
-    else
-      {:get_user, nil} -> {:error, :user_does_not_exist}
-      error -> error
-    end
-  end
+  @spec put_jwt_cookies(Plug.Conn.t(), Plug.opts()) :: Plug.Conn.t()
+  def put_jwt_cookies(conn, jwt: jwt) do
+    [header, payload, signature] = String.split(jwt, ".")
+    header_and_signature = "#{header}.#{signature}"
 
-  defdelegate get_claims(conn), to: LynxListWeb.Auth.Plugs
-
-  @spec get_user_claims(map) :: {:error, :invalid_claims_format} | {:ok, any}
-  def get_user_claims(%Conn{} = conn) do
     conn
-    |> get_claims()
-    |> get_user_claims()
+    |> put_resp_cookie(@payload_key, payload, @payload_options)
+    |> put_resp_cookie(@header_signature_key, header_and_signature, @header_signature_options)
   end
 
-  def get_user_claims(claims) when is_map(claims) do
-    case get_in(claims, ["data", "user"]) do
-      nil -> {:error, :invalid_claims_format}
-      value -> {:ok, value}
+  @spec attempt_authentication(Plug.Conn.t(), Plug.opts()) :: Plug.Conn.t()
+  def attempt_authentication(conn, _options \\ []) do
+    with {:ok, token} <- parse_jwt_from_cookies(conn),
+         {{:ok, claims}, _token} <- {Accounts.Token.verify_and_validate(token), token} do
+      put_claims(conn, claims)
+    else
+      {{:error, :expired_token}, token} ->
+        case Accounts.Token.refresh(token) do
+          {:ok, token} -> put_jwt_cookies(conn, jwt: token)
+          _error -> delete_jwt_cookies(conn)
+        end
+
+      _error ->
+        delete_jwt_cookies(conn)
     end
   end
 
-  def get_user(_conn) do
+  @spec require_authentication(Plug.Conn.t(), Plug.opts()) :: Plug.Conn.t()
+  def require_authentication(conn, _options \\ []) do
+    with new_conn <- attempt_authentication(conn),
+         {true, new_conn} <- {is_authenticated?(new_conn), new_conn} do
+      new_conn
+    else
+      {false, new_conn} ->
+        new_conn
+        |> put_status(401)
+        |> Phoenix.Controller.render(LynxListWeb.ErrorView, "error.json")
+        |> halt
+
+      _unknown_error ->
+        conn
+        |> put_status(500)
+        |> Phoenix.Controller.render(LynxListWeb.ErrorView, "error.json")
+    end
   end
 
-  defdelegate is_authenticated?(conn), to: LynxListWeb.Auth.Plugs
+  @spec is_authenticated?(Plug.Conn.t()) :: boolean()
+  def is_authenticated?(conn), do: Map.has_key?(conn.assigns, @claims_key)
+
+  @spec get_claims(Plug.Conn.t()) :: map() | nil
+  def get_claims(conn), do: conn.assigns[@claims_key]
+
+  @spec get_user_claims(Plug.Conn.t()) :: map() | nil
+  def get_user_claims(%Plug.Conn{} = conn) do
+    with {:claims, claims} when not is_nil(claims) <- {:claims, get_claims(conn)},
+         {:ok, user_claims} <- Accounts.Token.get_user_claims(claims) do
+      user_claims
+    else
+      _ ->
+        nil
+    end
+  end
+
+  @spec delete_jwt_cookies(Plug.Conn.t(), Plug.opts()) :: Plug.Conn.t()
+  defp delete_jwt_cookies(conn, _options \\ []) do
+    conn
+    |> delete_resp_cookie(@payload_key, @payload_options)
+    |> delete_resp_cookie(@header_signature_key, @header_signature_options)
+  end
+
+  @spec parse_jwt_from_cookies(Plug.Conn.t()) ::
+          {:ok, String.t()} | {:error, :failed_to_parse_jwt}
+  defp parse_jwt_from_cookies(conn) do
+    conn = fetch_cookies(conn)
+    cookies = conn.req_cookies
+
+    with {:ok, header_and_signature} <- Map.fetch(cookies, @header_signature_key),
+         [header, signature] <- String.split(header_and_signature, "."),
+         {:ok, payload} <- Map.fetch(cookies, @payload_key) do
+      {:ok, "#{header}.#{payload}.#{signature}"}
+    else
+      _ -> {:error, :failed_to_parse_jwt}
+    end
+  end
+
+  @spec put_claims(Plug.Conn.t(), map()) :: Plug.Conn.t()
+  defp put_claims(conn, claims) do
+    assign(conn, @claims_key, claims)
+  end
 end
