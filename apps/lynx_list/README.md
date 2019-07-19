@@ -1,3 +1,0 @@
-# LynxList
-
-**TODO: Add description**

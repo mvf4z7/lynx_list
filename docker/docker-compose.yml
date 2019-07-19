@@ -1,0 +1,47 @@
+version: "3.2"
+
+services:
+  db:
+    container_name: lynx_list_dev_db
+    restart: always
+    build:
+      context: .
+      dockerfile: Postgres_Dockerfile
+    volumes: ["lynx_list_dev_db:/var/lib/postgresql/data"]
+    ports: ["5433:5432"]
+    environment:
+      POSTGRES_DB: lynx_list_dev
+
+  test_db:
+    container_name: lynx_list_test_db
+    restart: always
+    build:
+      context: .
+      dockerfile: Postgres_Dockerfile
+    ports: ["5434:5432"]
+    environment:
+      POSTGRES_DB: lynx_list_test
+
+  # app:
+  #   container_name: lynx_list_dev_app
+  #   restart: always
+  #   build:
+  #     context: ..
+  #     dockerfile: dev/Dockerfile
+  #     args: { PORT: "${API_PORT}" }
+  #   tty: true
+  #   stdin_open: true
+  #   depends_on: [db]
+  #   volumes: ["../..:/app"]
+  #   ports: ["${API_PORT}:${API_PORT}"]
+  #   environment:
+  #     PG_USER: ${PG_USER}
+  #     PG_PASS: ${PG_PASS}
+  #     PG_DB: ${PG_DB}
+  #     PG_HOST: ${PG_HOST}
+  #     API_PORT: ${API_PORT}
+  #     GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID}
+  #     GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET}
+
+volumes:
+  lynx_list_dev_db:
