@@ -2,8 +2,8 @@ defmodule LynxListWeb.AuthController do
   use LynxListWeb, :controller
 
   alias LynxList.Accounts
-
   plug Ueberauth
+
   @lynx_list_client_url Application.get_env(:lynx_list, :lynx_list_client_url)
 
   def request(conn, _params) do
@@ -26,11 +26,6 @@ defmodule LynxListWeb.AuthController do
     |> redirect(external: "#{@lynx_list_client_url}#{redirect_path}")
   end
 
-  def create_account(conn, params) do
-    {:ok, user} = Accounts.register_user(params)
-    render(conn, "create.json", user: user)
-  end
-
   defp do_callback(conn, "github", auth) do
     github_id = auth.uid
     user = Accounts.get_user_by_github_id!(github_id)
@@ -38,6 +33,11 @@ defmodule LynxListWeb.AuthController do
 
     conn
     |> put_token_cookies(jwt)
+  end
+
+  def create_account(conn, params) do
+    {:ok, user} = Accounts.register_user(params)
+    render(conn, "create.json", user: user)
   end
 
   defp put_token_cookies(conn, token) do
