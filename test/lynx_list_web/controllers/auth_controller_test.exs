@@ -1,5 +1,5 @@
 defmodule LynxListWeb.AuthControllerTest do
-  use LynxListWeb.ConnCase
+  use LynxListWeb.ConnCase, async: true
 
   alias LynxList.Fixtures
   alias LynxList.Accounts.Token
@@ -45,7 +45,7 @@ defmodule LynxListWeb.AuthControllerTest do
 
   defp add_ueberauth_assigns(conn, provider, provider_user_id) do
     auth = %Ueberauth.Auth{
-      provider: :github,
+      provider: provider,
       uid: provider_user_id
     }
 

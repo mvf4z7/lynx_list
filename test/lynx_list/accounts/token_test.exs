@@ -1,5 +1,5 @@
 defmodule LynxList.TokenTest do
-  use LynxList.DataCase
+  use LynxList.DataCase, async: true
 
   alias LynxList.Accounts
   alias LynxList.Accounts.Token

@@ -1,5 +1,5 @@
 defmodule LyxnList.AccountsTest do
-  use LynxList.DataCase
+  use LynxList.DataCase, async: true
 
   alias LynxList.Accounts
   alias LynxList.Accounts.User
