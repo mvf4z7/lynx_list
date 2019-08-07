@@ -16,4 +16,8 @@ defmodule LynxListWeb.UserView do
     IO.inspect(map)
     map
   end
+
+  # TODO define a view for rendering a user reference. This would be a
+  # JSON view for minimally displaying a user when they are referenced
+  # from another entitie's JSON view (e.g. a LinkRecord has a user reference)
 end

@@ -1,6 +1,8 @@
 defmodule LynxList.Fixtures do
   alias LynxList.Accounts
   alias LynxList.Accounts.User
+  alias LynxList.Links
+  alias LynxList.Links.Link
 
   @spec user(map()) :: %User{}
   def user(attrs \\ %{}) do
@@ -27,5 +29,18 @@ defmodule LynxList.Fixtures do
       |> Accounts.register_user()
 
     user
+  end
+
+  @spec link(map) :: %Link{}
+  def link(attrs \\ %{}) do
+    {:ok, link} =
+      %{
+        title: "Some title",
+        url: "https://google.com"
+      }
+      |> Map.merge(attrs)
+      |> Links.create_link()
+
+    link
   end
 end

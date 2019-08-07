@@ -3,14 +3,13 @@ defmodule LynxList.Repo.Migrations.CreateLinks do
 
   def change do
     create table(:links) do
-      add :description, :text
-      add :private, :boolean, null: false
-      add :title, :text
+      add :title, :text, null: false
       add :url, :text, null: false
-
-      add :user_id, references(:users, on_delete: :delete_all), null: false
+      add :last_updated_meta, :utc_datetime
 
       timestamps()
     end
+
+    create unique_index(:links, [:url])
   end
 end
