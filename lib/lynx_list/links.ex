@@ -1,12 +1,15 @@
 defmodule LynxList.Links do
+  alias Ecto.Changeset
   alias LynxList.Repo
   alias LynxList.Accounts.User
   alias LynxList.Links.{Link, LinkRecord}
 
-  @spec create_link(map) :: {:ok, %Link{}} | {:error, atom}
-  def create_link(attrs) when is_map(attrs) do
-    attrs
-    |> Link.changeset()
+  @type create_link_error :: :url_exists | :validation_error
+
+  @spec create_link(binary) :: {:ok, %Link{}} | {:error, create_link_error()}
+  def create_link(url) when is_binary(url) do
+    %{"url" => url}
+    |> Link.create_changeset()
     |> Repo.insert()
     |> case do
       {:ok, link} ->
@@ -26,11 +29,29 @@ defmodule LynxList.Links do
     end
   end
 
-  @spec save_link_record(%User{}, map) :: %LinkRecord{}
-  def save_link_record(%User{} = user, attrs) do
+  @spec create_link_record(%User{}, map) :: {:ok, %LinkRecord{}} | {:error, %Changeset{}}
+  def create_link_record(%User{} = user, %{"url" => url} = attrs) do
+    with {:ok, link} <- get_or_create_link(url),
+         new_attrs <- Map.merge(attrs, %{"link_id" => link.id, "user_id" => user.id}),
+         changeset <- LinkRecord.changeset(new_attrs),
+         link_record <- Repo.insert(changeset) do
+      link_record
+    else
+      value -> value
+    end
   end
 
-  defp get_or_create_link(attrs) when is_map(attrs) do
+  @spec get_or_create_link(binary) :: {:ok, %Link{}} | {:error, atom} | no_return
+  defp get_or_create_link(url) when is_binary(url) do
+    with {:error, :url_exists} <- create_link(url),
+         {:ok, link} <- get_link_by_url(url) do
+      link
+    else
+      # call to create_link created a %Link{}
+      {:ok, link} -> {:ok, link}
+      {:error, :not_found} -> raise "unable to create or get link with url #{url}"
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   @spec get_create_link_error(%Ecto.Changeset{}, ChangesetHelpers.errors_map()) :: atom
@@ -41,7 +62,7 @@ defmodule LynxList.Links do
     end
   end
 
-  defp get_create_link_error(_changesetG, _errors_map) do
+  defp get_create_link_error(_changeset, _errors_map) do
     :validation_error
   end
 end
