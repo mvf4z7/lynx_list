@@ -3,7 +3,7 @@ defmodule LynxList.LinksTest do
 
   alias LynxList.Fixtures
   alias LynxList.Links
-  alias LynxList.Links.Link
+  alias LynxList.Links.{Link, LinkRecord}
   alias LynxList.Repo
 
   describe "create_link/1" do
@@ -31,13 +31,56 @@ defmodule LynxList.LinksTest do
     # end
   end
 
+  describe "get_link_by_url/1" do
+  end
+
   describe "create_link_record/2" do
-    @tag :only
-    test "should create a link record associated with the provided user" do
+    @valid_attrs %{
+      "description" => "A description",
+      "private" => false,
+      "title" => "A title",
+      "url" => "https://google.com"
+    }
+
+    setup do
       user = Fixtures.user()
-      attrs = %{"url" => "https://google.com"}
-      link_record = Links.create_link_record(user, attrs)
-      IO.inspect(link_record)
+      {:ok, user: user}
+    end
+
+    test "should create a link record associated with the provided user", %{user: user} do
+      assert {:ok, %LinkRecord{} = link_record} = Links.create_link_record(user, @valid_attrs)
+      assert link_record.description == @valid_attrs["description"]
+      assert link_record.private == false
+      assert link_record.title == @valid_attrs["title"]
+      assert link_record.link.url == @valid_attrs["url"]
+      assert link_record.user == user
+    end
+
+    test "should default the description to an empty string", %{user: user} do
+      attrs = Map.drop(@valid_attrs, ["description"])
+
+      assert {:ok, link_record} = Links.create_link_record(user, attrs)
+      assert link_record.description == ""
+    end
+
+    test "should default the title to an empty string", %{user: user} do
+      attrs = Map.drop(@valid_attrs, ["title"])
+
+      assert {:ok, link_record} = Links.create_link_record(user, attrs)
+      assert link_record.title == ""
+    end
+
+    test "should default private to false", %{user: user} do
+      attrs = Map.drop(@valid_attrs, ["private"])
+
+      assert {:ok, link_record} = Links.create_link_record(user, attrs)
+      assert link_record.private == false
+    end
+
+    test "should return a validation error if a url is not provided", %{user: user} do
+      attrs = Map.drop(@valid_attrs, ["url"])
+
+      assert {:error, :validation_error} = Links.create_link_record(user, attrs)
     end
   end
 end

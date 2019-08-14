@@ -7,8 +7,8 @@ defmodule LynxList.Links.LinkRecord do
   alias LynxList.Accounts
   alias LynxList.Links
 
-  @required_fields [:link_id, :private, :user_id]
-  @cast_fields [:description, :link_id, :private, :title, :user_id]
+  @required_fields [:private]
+  @cast_fields [:description, :private, :title]
   @description_max_length 1000
   @title_max_length 255
 
@@ -31,5 +31,12 @@ defmodule LynxList.Links.LinkRecord do
     |> validate_length(:title, max: @title_max_length)
     |> foreign_key_constraint(:link_id)
     |> foreign_key_constraint(:user_id)
+  end
+
+  def create_changeset(link_record \\ %__MODULE__{}, %{"link" => link, "user" => user} = attrs) do
+    link_record
+    |> changeset(attrs)
+    |> put_assoc(:link, link)
+    |> put_assoc(:user, user)
   end
 end

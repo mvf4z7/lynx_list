@@ -30,12 +30,9 @@ defmodule LynxList.Links.Link do
     new_attrs =
       case Map.get(attrs, "url") do
         url when not is_nil(url) and is_binary(url) ->
-          value = Map.put_new(attrs, "title", url)
-          IO.inspect(value)
-          value
+          Map.put_new(attrs, "title", url)
 
         _ ->
-          IO.inspect("there")
           attrs
       end
 
