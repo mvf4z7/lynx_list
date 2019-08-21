@@ -51,13 +51,15 @@ defmodule LynxListWeb.Auth do
       {false, new_conn} ->
         new_conn
         |> put_status(401)
-        |> Phoenix.Controller.render(LynxListWeb.ErrorView, "error.json")
+        |> Phoenix.Controller.put_view(LynxListWeb.ErrorView)
+        |> Phoenix.Controller.render("error.json")
         |> halt
 
       _unknown_error ->
         conn
         |> put_status(500)
-        |> Phoenix.Controller.render(LynxListWeb.ErrorView, "error.json")
+        |> Phoenix.Controller.put_view(LynxListWeb.ErrorView)
+        |> Phoenix.Controller.render("error.json")
     end
   end
 

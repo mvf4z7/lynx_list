@@ -31,16 +31,9 @@ defmodule LynxList.Fixtures do
     user
   end
 
-  @spec link(map) :: %Link{}
-  def link(attrs \\ %{}) do
-    {:ok, link} =
-      %{
-        title: "Some title",
-        url: "https://google.com"
-      }
-      |> Map.merge(attrs)
-      |> Links.create_link()
-
+  @spec link(binary) :: %Link{}
+  def link(url \\ "https://google.com") do
+    {:ok, link} = Links.create_link(url)
     link
   end
 end

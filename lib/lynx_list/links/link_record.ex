@@ -3,7 +3,6 @@ defmodule LynxList.Links.LinkRecord do
 
   import Ecto.Changeset
 
-  alias Ecto.Changeset
   alias LynxList.Accounts
   alias LynxList.Links
 
