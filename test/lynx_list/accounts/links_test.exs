@@ -82,5 +82,15 @@ defmodule LynxList.LinksTest do
 
       assert {:error, :validation_error} = Links.create_link_record(user, attrs)
     end
+
+    test "should associate multiple link records with the same URL to the same Link", %{
+      user: user_1
+    } do
+      user_2 = Fixtures.user(%{email: user_1.email <> "a", username: user_1.username <> "a"})
+
+      assert {:ok, link_record_1} = Links.create_link_record(user_1, @valid_attrs)
+      assert {:ok, link_record_2} = Links.create_link_record(user_2, @valid_attrs)
+      assert link_record_1.link == link_record_2.link
+    end
   end
 end
