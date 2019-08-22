@@ -3,7 +3,6 @@ defmodule LynxListWeb.AuthTest do
 
   alias LynxListWeb.Auth
   alias LynxList.Accounts.Token
-  # alias LynxListWeb.Auth.Plugs
   alias LynxList.Fixtures
   import Plug.Conn
 
@@ -90,6 +89,39 @@ defmodule LynxListWeb.AuthTest do
         |> Auth.get_claims()
 
       assert is_map(claims) == true
+    end
+
+    test "it should make the User struct accessible via the get_user function when the :load_user option is true" do
+      user = Fixtures.user()
+
+      conn =
+        user
+        |> create_authed_conn()
+        |> Auth.attempt_authentication(load_user: true)
+
+      assert user == Auth.get_user(conn)
+    end
+
+    test "it should not fetch the User struct by default " do
+      user = Fixtures.user()
+
+      conn =
+        user
+        |> create_authed_conn()
+        |> Auth.attempt_authentication()
+
+      assert Auth.get_user(conn) == nil
+    end
+
+    test "it should not fetch the User struct when the load_user option is false" do
+      user = Fixtures.user()
+
+      conn =
+        user
+        |> create_authed_conn()
+        |> Auth.attempt_authentication(load_user: false)
+
+      assert Auth.get_user(conn) == nil
     end
 
     test "it should pass through an unauthenticated conn" do

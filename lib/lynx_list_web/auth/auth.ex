@@ -14,6 +14,7 @@ defmodule LynxListWeb.Auth do
   @header_signature_options [domain: ".#{@host}", http_only: true]
 
   @claims_key :token_claims
+  @user_key :user
 
   @spec put_jwt_cookies(Plug.Conn.t(), Plug.opts()) :: Plug.Conn.t()
   def put_jwt_cookies(conn, jwt: jwt) do
@@ -26,10 +27,18 @@ defmodule LynxListWeb.Auth do
   end
 
   @spec attempt_authentication(Plug.Conn.t(), Plug.opts()) :: Plug.Conn.t()
-  def attempt_authentication(conn, _options \\ []) do
+  def attempt_authentication(conn, options \\ []) do
+    load_user = Keyword.get(options, :load_user, false)
+
     with {:ok, token} <- parse_jwt_from_cookies(conn),
-         {{:ok, claims}, _token} <- {Accounts.Token.verify_and_validate(token), token} do
-      put_claims(conn, claims)
+         {{:ok, claims}, _token} <- {Accounts.Token.verify_and_validate(token), token},
+         new_conn <- put_claims(conn, claims),
+         user_claims <- get_user_claims(new_conn),
+         user <- load_user && Accounts.get_user!(user_claims["id"]) do
+      case load_user do
+        true -> put_user(new_conn, user)
+        false -> new_conn
+      end
     else
       {{:error, :expired_token}, token} ->
         case Accounts.Token.refresh(token) do
@@ -43,8 +52,8 @@ defmodule LynxListWeb.Auth do
   end
 
   @spec require_authentication(Plug.Conn.t(), Plug.opts()) :: Plug.Conn.t()
-  def require_authentication(conn, _options \\ []) do
-    with new_conn <- attempt_authentication(conn),
+  def require_authentication(conn, options \\ []) do
+    with new_conn <- attempt_authentication(conn, options),
          {true, new_conn} <- {is_authenticated?(new_conn), new_conn} do
       new_conn
     else
@@ -80,6 +89,9 @@ defmodule LynxListWeb.Auth do
     end
   end
 
+  @spec get_user(Plug.Conn.t()) :: %Accounts.User{} | nil
+  def get_user(%Plug.Conn{} = conn), do: conn.assigns[@user_key]
+
   @spec delete_jwt_cookies(Plug.Conn.t(), Plug.opts()) :: Plug.Conn.t()
   defp delete_jwt_cookies(conn, _options \\ []) do
     conn
@@ -105,5 +117,10 @@ defmodule LynxListWeb.Auth do
   @spec put_claims(Plug.Conn.t(), map()) :: Plug.Conn.t()
   defp put_claims(conn, claims) do
     assign(conn, @claims_key, claims)
+  end
+
+  @spec put_user(Plug.Conn.t(), %Accounts.User{}) :: Plug.Conn.t()
+  defp put_user(conn, user) do
+    assign(conn, @user_key, user)
   end
 end
