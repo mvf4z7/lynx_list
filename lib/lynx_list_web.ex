@@ -23,6 +23,8 @@ defmodule LynxListWeb do
 
       import Plug.Conn
       import LynxListWeb.Gettext
+      import LynxListWeb.Auth
+
       alias LynxListWeb.Router.Helpers, as: Routes
     end
   end
