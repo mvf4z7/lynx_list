@@ -31,8 +31,9 @@ defmodule LynxListWeb.Auth do
     load_user = Keyword.get(options, :load_user, false)
 
     with {:ok, token} <- parse_jwt_from_cookies(conn),
-         {{:ok, claims}, _token} <- {Accounts.Token.verify_and_validate(token), token},
-         new_conn <- put_claims(conn, claims),
+         {:ok, new_token, claims} <- refresh_verify_and_validate(token),
+         new_conn <- put_jwt_cookies(conn, jwt: new_token),
+         new_conn <- put_claims(new_conn, claims),
          user_claims <- get_user_claims(new_conn),
          user <- load_user && Accounts.get_user!(user_claims["id"]) do
       case load_user do
@@ -40,12 +41,6 @@ defmodule LynxListWeb.Auth do
         false -> new_conn
       end
     else
-      {{:error, :expired_token}, token} ->
-        case Accounts.Token.refresh(token) do
-          {:ok, token} -> put_jwt_cookies(conn, jwt: token)
-          _error -> delete_jwt_cookies(conn)
-        end
-
       _error ->
         delete_jwt_cookies(conn)
     end
@@ -92,6 +87,21 @@ defmodule LynxListWeb.Auth do
   @spec get_user(Plug.Conn.t()) :: %Accounts.User{} | nil
   def get_user(%Plug.Conn{} = conn), do: conn.assigns[@user_key]
 
+  defp refresh_verify_and_validate(token) do
+    case Accounts.Token.verify_and_validate(token) do
+      {:ok, claims} ->
+        {:ok, token, claims}
+
+      {:error, :expired_token} ->
+        {:ok, new_token} = Accounts.Token.refresh(token)
+        {:ok, claims} = Accounts.Token.verify_and_validate(new_token)
+        {:ok, new_token, claims}
+
+      error ->
+        error
+    end
+  end
+
   @spec delete_jwt_cookies(Plug.Conn.t(), Plug.opts()) :: Plug.Conn.t()
   defp delete_jwt_cookies(conn, _options \\ []) do
     conn
@@ -100,7 +110,7 @@ defmodule LynxListWeb.Auth do
   end
 
   @spec parse_jwt_from_cookies(Plug.Conn.t()) ::
-          {:ok, String.t()} | {:error, :failed_to_parse_jwt}
+          {:ok, binary} | {:error, :failed_to_parse_jwt}
   defp parse_jwt_from_cookies(conn) do
     conn = fetch_cookies(conn)
     cookies = conn.req_cookies

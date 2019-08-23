@@ -6,8 +6,8 @@ defmodule LynxListWeb.AuthTest do
   alias LynxList.Fixtures
   import Plug.Conn
 
-  def create_authed_conn(user) do
-    {:ok, jwt} = Token.generate(user)
+  def create_authed_conn(user, additional_claims \\ %{}) do
+    {:ok, jwt} = Token.generate(user, additional_claims)
 
     conn =
       build_conn()
@@ -133,6 +133,21 @@ defmodule LynxListWeb.AuthTest do
       assert conn.halted == false
       assert conn.status == nil
       assert claims == nil
+    end
+
+    test "it should refresh the provided token if expired" do
+      user = Fixtures.user()
+
+      conn =
+        user
+        # create an expired token
+        |> create_authed_conn(%{"exp" => 1})
+        |> Auth.attempt_authentication()
+
+      claims = Auth.get_claims(conn)
+      assert claims["exp"] > 1
+      assert conn.halted == false
+      assert conn.status == nil
     end
   end
 
