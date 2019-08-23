@@ -39,7 +39,6 @@ defmodule LynxList.TokenTest do
       assertClaims(claims, user)
     end
 
-    @tag :only
     test "it should generate a valid token with any additional claims added to the token" do
       user = Fixtures.user()
 
