@@ -7,9 +7,11 @@ defmodule LynxList.Accounts.Token do
   @type claims :: %{optional(binary) => any}
   @type error_reason :: atom | keyword
 
-  @spec generate(%User{}) :: {:error, error_reason} | {:ok, t}
-  def generate(%User{enabled: true} = user) do
-    additionalClaims = %{
+  @spec generate(%User{}, map) :: {:error, error_reason} | {:ok, t}
+  def generate(user, additional_claims \\ %{})
+
+  def generate(%User{enabled: true} = user, additional_claims) do
+    user_claims = %{
       "data" => %{
         "user" => %{
           "id" => user.id,
@@ -20,13 +22,15 @@ defmodule LynxList.Accounts.Token do
       }
     }
 
-    case JWT.generate_and_sign(additionalClaims) do
+    dynamic_claims = Map.merge(additional_claims, user_claims)
+
+    case JWT.generate_and_sign(dynamic_claims) do
       {:ok, token, _claims} -> {:ok, token}
       {:error, reason} -> {:error, reason}
     end
   end
 
-  def generate(%User{enabled: false}) do
+  def generate(%User{enabled: false}, _additional_claims) do
     {:error, :disabled_user}
   end
 

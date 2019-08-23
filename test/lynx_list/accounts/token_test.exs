@@ -39,6 +39,25 @@ defmodule LynxList.TokenTest do
       assertClaims(claims, user)
     end
 
+    @tag :only
+    test "it should generate a valid token with any additional claims added to the token" do
+      user = Fixtures.user()
+
+      additional_claims = %{
+        "foo" => "bar",
+        "baz" => %{"bizzle" => "bop"}
+      }
+
+      {:ok, token} = Token.generate(user, additional_claims)
+
+      claims = JWT.verify_and_validate!(token)
+      assertClaims(claims, user)
+
+      claims_set = MapSet.new(claims)
+      additional_claims_set = MapSet.new(additional_claims)
+      assert MapSet.subset?(additional_claims_set, claims_set)
+    end
+
     test "it should return an error when passed a disabled user" do
       user = Fixtures.user(%{enabled: false})
       assert {:error, :disabled_user} = Token.generate(user)
