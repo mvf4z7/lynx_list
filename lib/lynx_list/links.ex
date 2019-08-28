@@ -42,6 +42,17 @@ defmodule LynxList.Links do
     end
   end
 
+  @spec get_link_record(binary) :: {:ok, %LinkRecord{}} | {:error, :not_found}
+  def get_link_record(id) do
+    # Create EntityNotFoundException for error tuple (e.g. {error, EntityNotFoundException}
+    # This Exception could store a reference to the Entity being searched and the id provided
+
+    case Repo.get(LinkRecord, id) do
+      nil -> {:error, :not_found}
+      link_record -> {:ok, link_record}
+    end
+  end
+
   @spec get_or_create_link(binary) :: {:ok, %Link{}} | {:error, atom} | no_return
   defp get_or_create_link(url) do
     error_message = "unable to create or get link with url #{url}"

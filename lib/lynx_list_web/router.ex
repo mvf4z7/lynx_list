@@ -17,6 +17,8 @@ defmodule LynxListWeb.Router do
   scope "/api", LynxListWeb do
     pipe_through :api
 
+    resources "/link-records", LinkRecordController, only: [:show]
+
     get "/test", TestController, :index
   end
 end
