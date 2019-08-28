@@ -20,7 +20,6 @@ defmodule LynxListWeb.LinkRecordControllerTest do
   #   IO.inspect(conn)
   # end
 
-  @tag :only
   test "GET /api/link-record<id> should return a 404 when a LinkRecord with the provided id does not exist" do
     conn =
       build_conn()
