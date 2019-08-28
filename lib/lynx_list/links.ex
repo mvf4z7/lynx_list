@@ -46,8 +46,9 @@ defmodule LynxList.Links do
   def get_link_record(id) do
     # Create EntityNotFoundException for error tuple (e.g. {error, EntityNotFoundException}
     # This Exception could store a reference to the Entity being searched and the id provided
-
-    case Repo.get(LinkRecord, id) do
+    Repo.get(LinkRecord, id)
+    |> Repo.preload(:link)
+    |> case do
       nil -> {:error, :not_found}
       link_record -> {:ok, link_record}
     end
