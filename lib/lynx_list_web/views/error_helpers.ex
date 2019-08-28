@@ -31,7 +31,7 @@ defmodule LynxListWeb.ErrorHelpers do
     end
   end
 
-  @spec status_from_template(String.t()) :: integer
+  @spec status_from_template(binary) :: integer
   def status_from_template(template) when is_binary(template) do
     template
     |> String.split(".")
@@ -39,10 +39,15 @@ defmodule LynxListWeb.ErrorHelpers do
     |> String.to_integer()
   end
 
-  @spec default_code_for_status(integer) :: String.t()
-  def default_code_for_status(status) do
+  @spec default_code_for_status(integer) :: binary
+  def default_code_for_status(status) when is_integer(status) do
     status
     |> Plug.Conn.Status.reason_phrase()
     |> String.replace(" ", "")
+  end
+
+  @spec default_message_for_status(integer) :: binary
+  def default_message_for_status(status) when is_integer(status) do
+    Plug.Conn.Status.reason_phrase(status)
   end
 end

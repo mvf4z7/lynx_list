@@ -5,11 +5,18 @@ defmodule LynxListWeb.ErrorViewTest do
   import Phoenix.View
 
   test "renders 404.json" do
-    assert render(LynxListWeb.ErrorView, "404.json", []) == %{errors: %{detail: "Not Found"}}
+    assert render(LynxListWeb.ErrorView, "404.json", []) == %{
+             code: "NotFound",
+             message: "Not Found",
+             status: 404
+           }
   end
 
   test "renders 500.json" do
-    assert render(LynxListWeb.ErrorView, "500.json", []) ==
-             %{errors: %{detail: "Internal Server Error"}}
+    assert render(LynxListWeb.ErrorView, "500.json", []) == %{
+             code: "InternalServerError",
+             message: "Internal Server Error",
+             status: 500
+           }
   end
 end
