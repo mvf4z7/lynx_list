@@ -12,9 +12,7 @@ defmodule LynxListWeb.UserView do
   ]
 
   def render("show.json", %{user: %User{} = user}) do
-    map = Map.take(user, @attributes)
-    IO.inspect(map)
-    map
+    Map.take(user, @attributes)
   end
 
   # TODO define a view for rendering a user reference. This would be a
