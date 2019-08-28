@@ -6,18 +6,6 @@ defmodule LynxListWeb.AuthTest do
   alias LynxList.Fixtures
   import Plug.Conn
 
-  def create_authed_conn(user, additional_claims \\ %{}) do
-    {:ok, jwt} = Token.generate(user, additional_claims)
-
-    conn =
-      build_conn()
-      |> Auth.put_jwt_cookies(jwt: jwt)
-
-    Enum.reduce(fetch_cookies(conn).cookies, conn, fn {key, value}, conn ->
-      Plug.Test.put_req_cookie(conn, key, value)
-    end)
-  end
-
   describe "put_jwt_cookies" do
     test "it should put the jwt payload fragment in the \"token_payload\" cookie" do
       {:ok, jwt} =
