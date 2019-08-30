@@ -30,6 +30,7 @@ defmodule LynxList.Links.LinkRecord do
     |> validate_length(:title, max: @title_max_length)
     |> foreign_key_constraint(:link_id)
     |> foreign_key_constraint(:user_id)
+    |> unique_constraint(:link, name: "link_records_link_id_user_id_index")
   end
 
   def create_changeset(link_record \\ %__MODULE__{}, %{"link" => link, "user" => user} = attrs) do
