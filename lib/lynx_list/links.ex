@@ -1,6 +1,6 @@
 defmodule LynxList.Links do
   alias Ecto.Changeset
-  alias LynxList.Repo
+  alias LynxList.{ChangesetHelpers, Repo}
   alias LynxList.Accounts.User
   alias LynxList.Links.{Link, LinkRecord}
 
@@ -29,16 +29,23 @@ defmodule LynxList.Links do
     end
   end
 
-  @spec create_link_record(%User{}, map) :: {:ok, %LinkRecord{}} | {:error, %Changeset{}}
+  @spec create_link_record(%User{}, map) :: {:ok, %LinkRecord{}} | {:error, atom}
   def create_link_record(%User{} = user, attrs) do
     with url <- Map.get(attrs, "url"),
          {:ok, link} <- get_or_create_link(url),
          new_attrs <- Map.merge(attrs, %{"link" => link, "user" => user}),
          changeset <- LinkRecord.create_changeset(new_attrs),
-         link_record <- Repo.insert(changeset) do
-      link_record
+         {:ok, link_record} <- Repo.insert(changeset) do
+      {:ok, link_record}
     else
-      value -> value
+      {:error, changeset = %Changeset{}} ->
+        case ChangesetHelpers.has_unique_constraint?(changeset, :link) do
+          true -> {:error, :url_exists}
+          false -> {:error, :validation_error}
+        end
+
+      error ->
+        error
     end
   end
 

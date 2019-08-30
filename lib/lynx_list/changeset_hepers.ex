@@ -1,4 +1,4 @@
-defmodule ChangesetHelpers do
+defmodule LynxList.ChangesetHelpers do
   alias Ecto.Changeset
 
   @type changeset_error :: {String.t(), Keyword.t()}
