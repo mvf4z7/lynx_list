@@ -11,30 +11,45 @@ defmodule LynxListWeb.LinkRecordControllerTest do
     {:ok, link_record: link_record, user: user}
   end
 
-  test "POST /api/link-record/ should return a 200 and a LinkRecord response body", %{user: user} do
-    conn =
-      user
-      |> create_authed_conn()
-
-    body = %{
+  describe "POST /api/link-record/" do
+    @valid_attrs %{
       "description" => "Some description",
       "private" => false,
       "title" => "Some title",
       "url" => "http://google.com"
     }
 
-    json_response =
-      conn
-      |> post("/api/link-records/", body)
-      |> json_response(200)
+    test "should return a 200 and a LinkRecord response body", %{user: user} do
+      post_body = @valid_attrs
 
-    assert Map.keys(json_response) |> Enum.count() == 1
-    assert %{"linkRecord" => link_record} = json_response
+      json_response =
+        user
+        |> create_authed_conn()
+        |> post("/api/link-records/", post_body)
+        |> json_response(200)
 
-    {deterministic_fields, id_fields} = Map.split(link_record, Map.keys(body))
-    assert deterministic_fields == body
-    assert {:ok, _id} = UUID.cast(id_fields["id"])
-    assert {:ok, _id} = UUID.cast(id_fields["parentLinkId"])
+      assert Map.keys(json_response) |> Enum.count() == 1
+      assert %{"linkRecord" => link_record} = json_response
+
+      {deterministic_fields, id_fields} = Map.split(link_record, Map.keys(post_body))
+      assert deterministic_fields == post_body
+      assert {:ok, _id} = UUID.cast(id_fields["id"])
+      assert {:ok, _id} = UUID.cast(id_fields["parentLinkId"])
+    end
+
+    test "should return a 409 when a user tries to create LinkRecord with a repeated URL", %{
+      link_record: link_record,
+      user: user
+    } do
+      post_body = Map.put(@valid_attrs, "url", link_record.link.url)
+
+      response =
+        user
+        |> create_authed_conn()
+        |> post("/api/link-records/", post_body)
+
+      assert response.status == 409
+    end
   end
 
   test "GET /api/link-record/<id> should return LinkRecord with the provided id", %{

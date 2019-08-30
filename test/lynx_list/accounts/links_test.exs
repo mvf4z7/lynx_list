@@ -83,6 +83,12 @@ defmodule LynxList.LinksTest do
       assert {:error, :validation_error} = Links.create_link_record(user, attrs)
     end
 
+    test "should return a :url_exists error if multiple LinkRecords with the same URL are created for a user",
+         %{user: user} do
+      assert {:ok, link_record} = Links.create_link_record(user, @valid_attrs)
+      assert {:error, :url_exists} = Links.create_link_record(user, @valid_attrs)
+    end
+
     test "should associate multiple link records with the same URL to the same Link", %{
       user: user_1
     } do

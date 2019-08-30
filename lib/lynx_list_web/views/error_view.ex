@@ -22,6 +22,16 @@ defmodule LynxListWeb.ErrorView do
     render("error.json", new_assigns)
   end
 
+  def render("invalid_input_error.json", assigns) do
+    new_assigns =
+      assigns
+      |> Map.put(:code, :InvalidInput)
+      |> Map.put_new(:status, 400)
+      |> Map.put_new(:message, "One or more of the request inputs was invalid")
+
+    render("error.json", new_assigns)
+  end
+
   # If you want to customize a particular status code
   # for a certain format, you may uncomment below.
   # def render("500.json", _assigns) do
