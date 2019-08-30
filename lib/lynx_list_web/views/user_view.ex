@@ -3,16 +3,14 @@ defmodule LynxListWeb.UserView do
 
   alias LynxList.Accounts.User
 
-  @attributes [
-    :email,
-    :id,
-    :inserted_at,
-    :updated_at,
-    :username
-  ]
-
   def render("show.json", %{user: %User{} = user}) do
-    Map.take(user, @attributes)
+    %{
+      createdAt: user.inserted_at,
+      email: user.email,
+      id: user.id,
+      updatedAt: user.updated_at,
+      username: user.username
+    }
   end
 
   # TODO define a view for rendering a user reference. This would be a

@@ -6,11 +6,13 @@ defmodule LynxListWeb.LinkRecordView do
   @spec link_record_json(%LinkRecord{}) :: map
   def link_record_json(%LinkRecord{} = link_record) do
     %{
+      createdAt: link_record.inserted_at,
       description: link_record.description,
       id: link_record.id,
       parentLinkId: link_record.link.id,
       private: link_record.private,
       title: link_record.title,
+      updatedAt: link_record.updated_at,
       url: link_record.link.url
     }
   end
