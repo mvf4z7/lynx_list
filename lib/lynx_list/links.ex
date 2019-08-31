@@ -1,6 +1,7 @@
 defmodule LynxList.Links do
   alias Ecto.Changeset
   alias LynxList.{ChangesetHelpers, Repo}
+  alias LynxList.Exceptions.{EntityNotFound}
   alias LynxList.Accounts.User
   alias LynxList.Links.{Link, LinkRecord}
 
@@ -49,14 +50,14 @@ defmodule LynxList.Links do
     end
   end
 
-  @spec get_link_record(binary) :: {:ok, %LinkRecord{}} | {:error, :not_found}
+  @spec get_link_record(binary) :: {:ok, %LinkRecord{}} | {:error, %EntityNotFound{}}
   def get_link_record(id) do
     # Create EntityNotFoundException for error tuple (e.g. {error, EntityNotFoundException}
     # This Exception could store a reference to the Entity being searched and the id provided
     Repo.get(LinkRecord, id)
     |> Repo.preload(:link)
     |> case do
-      nil -> {:error, :not_found}
+      nil -> {:error, EntityNotFound.exception(entity_module: LinkRecord, id: id)}
       link_record -> {:ok, link_record}
     end
   end

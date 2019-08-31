@@ -1,6 +1,7 @@
 defmodule LynxListWeb.LinkRecordController do
   use LynxListWeb, :controller
 
+  alias LynxList.Exceptions.EntityNotFound
   alias LynxList.Links
 
   plug :attempt_authentication, load_user: true
@@ -36,11 +37,11 @@ defmodule LynxListWeb.LinkRecordController do
       {:ok, link_record} ->
         render(conn, "show.json", link_record: link_record)
 
-      {:error, :not_found} ->
+      {:error, %EntityNotFound{} = exception} ->
         conn
         |> put_status(404)
         |> put_view(LynxListWeb.ErrorView)
-        |> render("error.json")
+        |> render("EntityNotFound.json", exception: exception)
     end
   end
 end

@@ -1,6 +1,7 @@
 defmodule LynxListWeb.ErrorView do
   use LynxListWeb, :view
 
+  alias LynxList.Exceptions.EntityNotFound
   alias LynxListWeb.ErrorHelpers
 
   def render("error.json", %{status: status} = assigns) do
@@ -30,6 +31,14 @@ defmodule LynxListWeb.ErrorView do
       |> Map.put_new(:message, "One or more of the request inputs was invalid")
 
     render("error.json", new_assigns)
+  end
+
+  def render("EntityNotFound.json", %{exception: %EntityNotFound{} = exception}) do
+    render("error.json", %{
+      code: :EntityNotFound,
+      message: Exception.message(exception),
+      status: 404
+    })
   end
 
   # If you want to customize a particular status code

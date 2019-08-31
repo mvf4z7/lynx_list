@@ -2,7 +2,8 @@ defmodule LynxListWeb.LinkRecordControllerTest do
   use LynxListWeb.ConnCase, async: true
 
   alias Ecto.UUID
-  alias LynxList.Fixtures
+  alias LynxList.Exceptions.EntityNotFound
+  alias LynxList.{Fixtures, Links}
   alias LynxListWeb.LinkRecordView
 
   setup do
@@ -86,11 +87,15 @@ defmodule LynxListWeb.LinkRecordControllerTest do
   end
 
   test "GET /api/link-record<id> should return a 404 when a LinkRecord with the provided id does not exist" do
+    random_UUID = UUID.generate()
+
     conn =
       build_conn()
-      |> get("/api/link-records/#{UUID.generate()}")
+      |> get("/api/link-records/#{random_UUID}")
+
+    exception = EntityNotFound.exception(entity_module: Links.LinkRecord, id: random_UUID)
 
     assert json_response(conn, 404) ==
-             render_json(LynxListWeb.ErrorView, "404.json")
+             render_json(LynxListWeb.ErrorView, "EntityNotFound.json", exception: exception)
   end
 end
