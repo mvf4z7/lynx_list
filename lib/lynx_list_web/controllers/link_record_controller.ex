@@ -4,7 +4,10 @@ defmodule LynxListWeb.LinkRecordController do
   alias LynxList.Exceptions.EntityNotFound
   alias LynxList.Links
 
-  plug :attempt_authentication, load_user: true
+  @require_auth [:create]
+
+  plug :require_authentication, [load_user: true] when action in @require_auth
+  plug :attempt_authentication, [load_user: true] when action not in @require_auth
 
   def create(conn, params) do
     user = get_user(conn)
