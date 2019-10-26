@@ -15,6 +15,8 @@ defmodule LynxList.ChangesetHelpers do
   end
 
   @spec has_unique_constraint?(%Changeset{}, atom) :: bool()
+  def has_unique_constraint?(%Changeset{valid?: true}, _field), do: false
+
   def has_unique_constraint?(%Changeset{errors: errors}, field) do
     field_errors = Keyword.get_values(errors, field)
 
