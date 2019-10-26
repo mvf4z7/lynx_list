@@ -2,6 +2,7 @@ defmodule LynxList.Accounts.User do
   use LynxList.Schema
 
   import Ecto.Changeset
+
   alias LynxList.Accounts.Credentials
 
   @required_fields [:email, :enabled, :username]
@@ -19,7 +20,7 @@ defmodule LynxList.Accounts.User do
   end
 
   @doc false
-  def changeset(user, attrs) do
+  def changeset(user \\ %__MODULE__{}, attrs) do
     user
     |> cast(attrs, @cast_fields)
     |> validate_required(@required_fields)
