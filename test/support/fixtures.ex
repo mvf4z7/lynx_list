@@ -4,11 +4,11 @@ defmodule LynxList.Fixtures do
   alias LynxList.Links
   alias LynxList.Links.{Link, LinkRecord}
 
-  @spec user(map()) :: %User{}
-  def user(attrs \\ %{}) do
+  @spec user_attrs(map()) :: map()
+  def user_attrs(attrs \\ %{}) do
     username = "user#{System.unique_integer([:positive])}"
 
-    default_attrs = %{
+    %{
       email: "#{username}@example.com",
       enabled: true,
       name: "Some Name",
@@ -17,15 +17,18 @@ defmodule LynxList.Fixtures do
         password: "supersecret"
       }
     }
+    |> Map.merge(attrs, fn k, v1, v2 ->
+      case k do
+        :credentials -> Map.merge(v1, v2)
+        _ -> v2
+      end
+    end)
+  end
 
+  @spec user(map()) :: %User{}
+  def user(attrs \\ %{}) do
     {:ok, user} =
-      default_attrs
-      |> Map.merge(attrs, fn k, v1, v2 ->
-        case k do
-          :credentials -> Map.merge(v1, v2)
-          _ -> v2
-        end
-      end)
+      user_attrs(attrs)
       |> Accounts.register_user()
 
     user
