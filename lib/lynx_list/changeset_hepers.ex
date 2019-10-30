@@ -1,17 +1,24 @@
 defmodule LynxList.ChangesetHelpers do
   alias Ecto.Changeset
 
-  @type changeset_error :: {String.t(), Keyword.t()}
-  @type errors_map :: %{required(atom) => [changeset_error]}
+  @type errors_map :: %{
+          required(atom) => %{
+            errors: [String.t()],
+            value: any()
+          }
+        }
 
   @spec get_errors_map(%Changeset{}) :: errors_map
-  def get_errors_map(%Changeset{errors: errors}) do
-    errors
-    |> Keyword.keys()
-    |> Enum.reduce(%{}, fn key, acc ->
-      values = Keyword.get_values(errors, key)
-      Map.put(acc, key, values)
+  def get_errors_map(%Changeset{changes: changes} = changeset) do
+    Changeset.traverse_errors(changeset, fn {msg, opts} ->
+      Enum.reduce(opts, msg, fn {key, value}, acc ->
+        String.replace(acc, "%{#{key}}", to_string(value))
+      end)
     end)
+    |> Enum.map(fn {field, errors} ->
+      {field, %{errors: errors, value: Map.get(changes, field)}}
+    end)
+    |> Enum.into(%{})
   end
 
   @spec has_unique_constraint?(%Changeset{}, atom) :: bool()
