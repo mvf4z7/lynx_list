@@ -96,7 +96,7 @@ defmodule LynxList.Links do
     create_validation_error(changeset)
   end
 
-  defp create_validation_error(_changset) do
+  defp create_validation_error(_changeset) do
     :validation_error
   end
 end
