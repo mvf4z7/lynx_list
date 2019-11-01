@@ -49,10 +49,10 @@ defmodule LynxList.ChangesetHelpersTest do
       result = ChangesetHelpers.get_errors_map(changeset)
 
       assert %{
-        foo: %{
-          errors: ["An exceptional error message"]
-        }
-      }
+               foo: %{
+                 errors: ["An exceptional error message"]
+               }
+             } = result
     end
 
     test "should set the errored fields input value, using nil if a change was not provided" do
