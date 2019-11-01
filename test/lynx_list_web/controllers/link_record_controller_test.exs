@@ -8,7 +8,7 @@ defmodule LynxListWeb.LinkRecordControllerTest do
 
   setup do
     user = Fixtures.user()
-    link_record = Fixtures.link_record(user)
+    link_record = Fixtures.link_record(user, %{"private" => false})
     {:ok, link_record: link_record, user: user}
   end
 
@@ -24,14 +24,14 @@ defmodule LynxListWeb.LinkRecordControllerTest do
     test "should return a 200 and a LinkRecord response body", %{user: user} do
       post_body = @valid_attrs
 
-      json_response =
+      response =
         user
         |> create_authed_conn()
         |> post(@url, post_body)
         |> json_response(200)
 
-      assert Map.keys(json_response) |> Enum.count() == 1
-      assert %{"linkRecord" => link_record} = json_response
+      assert Map.keys(response) |> Enum.count() == 1
+      assert %{"linkRecord" => link_record} = response
 
       {deterministic_fields, id_fields} = Map.split(link_record, Map.keys(post_body))
       assert deterministic_fields == post_body
@@ -73,18 +73,56 @@ defmodule LynxListWeb.LinkRecordControllerTest do
   end
 
   describe "GET /api/link-record/<id>" do
-    test "GET /api/link-record/<id> should return LinkRecord with the provided id", %{
-      link_record: link_record,
-      user: user
-    } do
-      json_response =
-        user
+    test "GET /api/link-record/<id> should return the LinkRecord with the provided id when it is not private and requested by a non-owning user",
+         %{
+           link_record: link_record
+         } do
+      non_owning_user = Fixtures.user()
+
+      response =
+        non_owning_user
         |> create_authed_conn()
         |> get("/api/link-records/#{link_record.id}")
         |> json_response(200)
 
-      assert json_response ==
+      assert response ==
                render_json(LinkRecordView, "show.json", link_record: link_record)
+    end
+
+    test "GET /api/link-record/<id> should return a 404 when it is private requested by a non-owning user",
+         %{
+           user: user
+         } do
+      private_link_record = Fixtures.link_record(user, %{"private" => true})
+      non_owning_user = Fixtures.user()
+
+      response =
+        non_owning_user
+        |> create_authed_conn()
+        |> get("/api/link-records/#{private_link_record.id}")
+        |> json_response(404)
+
+      exception =
+        EntityNotFound.exception(entity_module: Links.LinkRecord, id: private_link_record.id)
+
+      assert response ==
+               render_json(LynxListWeb.ErrorView, "EntityNotFound.json", exception: exception)
+    end
+
+    test "GET /api/link-record/<id> should return the LinkRecord with the provided id when it is private and requested by the owning user",
+         %{
+           user: user
+         } do
+      private_link_record = Fixtures.link_record(user, %{"private" => true})
+
+      response =
+        user
+        |> create_authed_conn()
+        |> get("/api/link-records/#{private_link_record.id}")
+        |> json_response(200)
+
+      assert response ==
+               render_json(LinkRecordView, "show.json", link_record: private_link_record)
     end
 
     test "GET /api/link-record<id> should return a 404 when a LinkRecord with the provided id does not exist" do
