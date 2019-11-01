@@ -47,7 +47,7 @@ defmodule LynxList.Fixtures do
         "description" => "Some description",
         "private" => false,
         "title" => "Some title",
-        "url" => "http://someurl.com"
+        "url" => "http://random-url-#{System.unique_integer([:positive])}.com"
       }
       |> Map.merge(overrides)
 
