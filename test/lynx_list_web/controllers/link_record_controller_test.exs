@@ -72,30 +72,32 @@ defmodule LynxListWeb.LinkRecordControllerTest do
     end
   end
 
-  test "GET /api/link-record/<id> should return LinkRecord with the provided id", %{
-    link_record: link_record,
-    user: user
-  } do
-    json_response =
-      user
-      |> create_authed_conn()
-      |> get("/api/link-records/#{link_record.id}")
-      |> json_response(200)
+  describe "GET /api/link-record/<id>" do
+    test "GET /api/link-record/<id> should return LinkRecord with the provided id", %{
+      link_record: link_record,
+      user: user
+    } do
+      json_response =
+        user
+        |> create_authed_conn()
+        |> get("/api/link-records/#{link_record.id}")
+        |> json_response(200)
 
-    assert json_response ==
-             render_json(LinkRecordView, "show.json", link_record: link_record)
-  end
+      assert json_response ==
+               render_json(LinkRecordView, "show.json", link_record: link_record)
+    end
 
-  test "GET /api/link-record<id> should return a 404 when a LinkRecord with the provided id does not exist" do
-    random_UUID = UUID.generate()
+    test "GET /api/link-record<id> should return a 404 when a LinkRecord with the provided id does not exist" do
+      random_UUID = UUID.generate()
 
-    conn =
-      build_conn()
-      |> get("/api/link-records/#{random_UUID}")
+      conn =
+        build_conn()
+        |> get("/api/link-records/#{random_UUID}")
 
-    exception = EntityNotFound.exception(entity_module: Links.LinkRecord, id: random_UUID)
+      exception = EntityNotFound.exception(entity_module: Links.LinkRecord, id: random_UUID)
 
-    assert json_response(conn, 404) ==
-             render_json(LynxListWeb.ErrorView, "EntityNotFound.json", exception: exception)
+      assert json_response(conn, 404) ==
+               render_json(LynxListWeb.ErrorView, "EntityNotFound.json", exception: exception)
+    end
   end
 end
