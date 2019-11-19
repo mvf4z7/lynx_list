@@ -50,6 +50,10 @@ defmodule LyxnList.AccountsTest do
     }
 
     user = Fixtures.user(overrides)
-    assert user == Accounts.get_user_by_github_id!(33)
+    assert {:ok, user} == Accounts.get_user_by_github_id(33)
+  end
+
+  test "get_user_by_github_id/1 with an invalid id returns :not_found" do
+    assert :not_found == Accounts.get_user_by_github_id(33)
   end
 end

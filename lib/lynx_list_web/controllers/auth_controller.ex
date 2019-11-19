@@ -19,20 +19,50 @@ defmodule LynxListWeb.AuthController do
 
   def callback(conn, %{"provider" => provider} = params) do
     %{assigns: %{ueberauth_auth: auth}} = conn
+    IO.inspect(params)
     redirect_path = Map.get(params, "state", "/receive")
+
+    with {:ok, user} <- get_user_from_auth(auth),
+         {:ok, jwt} <- Accounts.Token.generate(user),
+         conn <- put_token_cookies(conn, jwt) do
+      redirect(conn, external: "#{@lynx_list_client_url}#{redirect_path}")
+    else
+      :not_found ->
+        user_details = get_user_details_from_callback(auth)
+
+        redirect(conn,
+          external: "#{@lynx_list_client_url}/register?#{URI.encode_query(user_details)}"
+        )
+
+      _error ->
+        redirect(conn, external: "#{@lynx_list_client_url}/error")
+    end
 
     conn
     |> do_callback(provider, auth)
     |> redirect(external: "#{@lynx_list_client_url}#{redirect_path}")
   end
 
+  defp get_user_from_auth(%Ueberauth.Auth{provider: :github} = auth) do
+    github_id = auth.uid
+    Accounts.get_user_by_github_id(github_id)
+  end
+
+  defp get_user_details_from_callback(%Ueberauth.Auth{info: info}) do
+    %{name: info.name, username: info.nickname, email: info.email}
+  end
+
   defp do_callback(conn, "github", auth) do
     github_id = auth.uid
-    user = Accounts.get_user_by_github_id!(github_id)
-    {:ok, jwt} = Accounts.Token.generate(user)
 
-    conn
-    |> put_token_cookies(jwt)
+    case Accounts.get_user_by_github_id(github_id) do
+      {:ok, user} ->
+        {:ok, jwt} = Accounts.Token.generate(user)
+        put_token_cookies(conn, jwt)
+
+      :not_found ->
+        conn
+    end
   end
 
   def create_account(conn, params) do

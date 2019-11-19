@@ -25,14 +25,18 @@ defmodule LynxList.Accounts do
     end
   end
 
-  def get_user_by_github_id!(id) do
+  @spec get_user_by_github_id(integer()) :: {:ok, %User{}} | :not_found
+  def get_user_by_github_id(id) do
     query =
       from u in User,
         join: c in Credentials,
         on: c.user_id == u.id,
         where: c.github_id == ^id
 
-    Repo.one!(query)
+    case Repo.one(query) do
+      nil -> :not_found
+      user -> {:ok, user}
+    end
   end
 
   @spec update_user(%User{}, map) :: {:error, Changeset.t()} | {:ok, %User{}}
