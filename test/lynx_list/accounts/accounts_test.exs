@@ -42,6 +42,15 @@ defmodule LyxnList.AccountsTest do
     assert %Ecto.Association.NotLoaded{} = user.credentials
   end
 
+  test "register_user/1 will enable a users account by default" do
+    attrs =
+      Fixtures.user_attrs()
+      |> Map.drop([:enabled])
+
+    assert {:ok, %User{} = user} = Accounts.register_user(attrs)
+    assert user.enabled == true
+  end
+
   test "get_user_by_github_id/1 with a valid id returns the corresponding user" do
     overrides = %{
       credentials: %{

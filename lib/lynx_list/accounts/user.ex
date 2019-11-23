@@ -10,7 +10,7 @@ defmodule LynxList.Accounts.User do
 
   schema "users" do
     field :email, :string
-    field :enabled, :boolean
+    field :enabled, :boolean, default: true
     field :name, :string
     field :username, :string
 
