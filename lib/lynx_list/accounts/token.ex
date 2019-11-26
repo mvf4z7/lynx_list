@@ -7,7 +7,7 @@ defmodule LynxList.Accounts.Token do
   @type claims :: %{optional(binary) => any}
   @type error_reason :: atom | keyword
 
-  @spec generate(%User{}, map) :: {:error, error_reason} | {:ok, t}
+  @spec generate(%User{}, map()) :: {:error, error_reason} | {:ok, t}
   def generate(user, additional_claims \\ %{})
 
   def generate(%User{enabled: true} = user, additional_claims) do
