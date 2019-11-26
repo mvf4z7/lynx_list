@@ -40,7 +40,7 @@ defmodule LynxListWeb.AuthControllerTest do
       [actual_claims, expected_claims]
       |> Enum.map(&Map.drop(&1, temporal_claim_keys))
 
-    assert ^actual_claims = expected_claims
+    assert actual_claims == expected_claims
   end
 
   defp add_ueberauth_assigns(conn, provider, provider_user_id) do
