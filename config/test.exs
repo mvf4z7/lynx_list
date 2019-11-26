@@ -13,7 +13,9 @@ config :lynx_list, LynxList.Repo,
 # you can enable the server option below.
 config :lynx_list, LynxListWeb.Endpoint,
   http: [port: 4002],
-  server: false
+  server: false,
+  secret_key_base: "Ixm/7tnRU1MeossJWJohpckQUMp4kmmSPIdcCmLwdl/8Jro8PdUVI1SJJOTo/b0D",
+  watchers: []
 
 # Print only warnings and errors during test
 config :logger, level: :warn

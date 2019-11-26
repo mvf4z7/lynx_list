@@ -47,7 +47,8 @@ defmodule LynxList.MixProject do
       {:ueberauth, "~> 0.6"},
       {:ueberauth_identity, "~> 0.2"},
       {:ueberauth_github, "~> 0.7"},
-      {:dialyxir, "~> 1.0.0-rc.6", only: [:dev], runtime: false}
+      {:dialyxir, "~> 1.0.0-rc.6", only: [:dev], runtime: false},
+      {:cors_plug, "~> 2.0"}
     ]
   end
 

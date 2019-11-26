@@ -1,6 +1,8 @@
 defmodule LynxListWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :lynx_list
 
+  plug CORSPlug
+
   socket "/socket", LynxListWeb.UserSocket,
     websocket: true,
     longpoll: false

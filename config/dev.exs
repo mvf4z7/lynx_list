@@ -25,7 +25,11 @@ config :lynx_list, LynxListWeb.Endpoint,
   debug_errors: true,
   code_reloader: true,
   check_origin: false,
+  secret_key_base: "Ixm/7tnRU1MeossJWJohpckQUMp4kmmSPIdcCmLwdl/8Jro8PdUVI1SJJOTo/b0D",
   watchers: []
+
+config :cors_plug,
+  origin: ["http://localhost.com:3000"]
 
 # ## SSL Support
 #

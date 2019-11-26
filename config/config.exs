@@ -14,7 +14,6 @@ config :lynx_list,
 # Configures the endpoint
 config :lynx_list, LynxListWeb.Endpoint,
   url: [host: "localhost.com"],
-  secret_key_base: "Ixm/7tnRU1MeossJWJohpckQUMp4kmmSPIdcCmLwdl/8Jro8PdUVI1SJJOTo/b0D",
   render_errors: [view: LynxListWeb.ErrorView, accepts: ~w(json)],
   pubsub: [name: LynxList.PubSub, adapter: Phoenix.PubSub.PG2]
 
