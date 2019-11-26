@@ -2,19 +2,27 @@ defmodule LynxListWeb.Auth do
   import Plug.Conn
 
   alias LynxList.Accounts
+  alias LynxListWeb.Auth.AuthProvider
 
   @host Application.get_env(:lynx_list, LynxListWeb.Endpoint)
         |> Keyword.fetch!(:url)
         |> Keyword.fetch!(:host)
+  @cookie_domain ".#{@host}"
 
   @payload_key "token_payload"
-  @payload_options [domain: ".#{@host}", http_only: false]
+  @payload_options [domain: @cookie_domain, http_only: false]
 
   @header_signature_key "token_header_signature"
-  @header_signature_options [domain: ".#{@host}", http_only: true]
+  @header_signature_options [domain: @cookie_domain, http_only: true]
 
   @claims_key :token_claims
   @user_key :user
+
+  @auth_provider_key "auth_provider"
+  @auth_provider_options [
+    domain: @cookie_domain,
+    http_only: true
+  ]
 
   @spec put_jwt_cookies(Plug.Conn.t(), Plug.opts()) :: Plug.Conn.t()
   def put_jwt_cookies(conn, jwt: jwt) do
@@ -86,6 +94,30 @@ defmodule LynxListWeb.Auth do
 
   @spec get_user(Plug.Conn.t()) :: %Accounts.User{} | nil
   def get_user(%Plug.Conn{} = conn), do: conn.assigns[@user_key]
+
+  @spec put_provider_cookie(Plug.Conn.t(), auth: Ueberauth.Auth.t()) :: Plug.Conn.t()
+  def put_provider_cookie(conn, auth: auth) do
+    auth_provider = AuthProvider.new(auth)
+    token = AuthProvider.tokenize(auth_provider)
+
+    conn
+    |> put_resp_cookie(@auth_provider_key, token, @auth_provider_options)
+  end
+
+  @spec parse_provider_cookie(Plug.Conn.t()) :: AuthProvider.t() | nil
+  def parse_provider_cookie(conn) do
+    conn = fetch_cookies(conn)
+    IO.inspect(conn)
+
+    with {:ok, token} <- Map.fetch(conn.cookies, @auth_provider_key),
+         {:ok, auth_provider} <- AuthProvider.verify_token(token) do
+      auth_provider
+    else
+      error ->
+        IO.inspect(error)
+        nil
+    end
+  end
 
   defp refresh_verify_and_validate(token) do
     case Accounts.Token.verify_and_validate(token) do
