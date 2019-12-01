@@ -9,7 +9,8 @@ defmodule LynxListWeb.Router do
     pipe_through :api
 
     post "/identity/callback", AuthController, :identity_callback
-    get "/:provider", AuthController, :request
+    get "/:provider", AuthController, :redirect_to_provider
+    get "/:provider/request", AuthController, :request
     get "/:provider/callback", AuthController, :callback
     post "/account", AuthController, :create_account
   end

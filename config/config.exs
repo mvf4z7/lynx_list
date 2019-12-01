@@ -31,7 +31,11 @@ config :ueberauth, Ueberauth,
   providers: [
     github:
       {Ueberauth.Strategy.Github,
-       [default_scope: "user:email", callback_path: "/auth/github/callback"]},
+       [
+         default_scope: "user:email",
+         request_path: "/auth/github/request",
+         callback_path: "/auth/github/callback"
+       ]},
     identity:
       {Ueberauth.Strategy.Identity,
        [
